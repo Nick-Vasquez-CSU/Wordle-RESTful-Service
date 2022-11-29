@@ -1,0 +1,12 @@
+mount-dir: "/home/student/Documents/449-project3/Web-Backend-Project3-satish-lifeFS/var/primary/mount"
+
+data-dir: "/home/student/Documents/449-project3/Web-Backend-Project3-satish-lifeFS/var/primary/data"
+
+exec: "hypercorn game --reload --debug --bind game.local.gd:$PORT --access-logfile - --error-logfile - --log-level DEBUG"
+
+static:
+        primary: true
+
+        hostname: "tuffix-vm"
+
+        advertise-url: "http://tuffix-vm:20202"
