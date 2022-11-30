@@ -5,17 +5,21 @@ import databases
 import toml
 from quart import Quart, abort, g, request
 from quart_schema import QuartSchema, validate_request
-
+import redis
 
 app = Quart(__name__)
 QuartSchema(app)
 
-app.config.from_file(f"./etc/{__name__}.toml", toml.load)
+#app.config.from_file(f"./etc/{__name__}.toml", toml.load)
+
+redisClient = redis.Redis(host='localhost', port=6379, db=0)
 
 @dataclasses.dataclass
-class Game:
+class GameInfo:
+    username: str
     gameid: str
-
+    guesses: int
+"""
 async def _connect_db():
     database = databases.Database(app.config["DATABASES"]["URL"])
     await database.connect()
@@ -33,34 +37,24 @@ async def close_connection(exception):
     db = getattr(g, "_sqlite_db", None)
     if db is not None:
         await db.disconnect()
+"""
 
-@app.route("/result", methods=["GET"])
-@validate_request(Game)
-async def getGameResult(data):
+@app.route("/result", methods=["POST"])
+@validate_request(GameInfo)
+async def postGameResult(data):
     auth = request.authorization
     if auth and auth.username and auth.password:
-        db = await _get_db()
-        currGame = dataclasses.asdict(data)
-        games_val = await db.fetch_one("SELECT * FROM game WHERE gameid= :gameid", values={"gameid": gameid})
-        if games_val is None or len(games_val) == 0:
-            return {"Message": "Not a valid gameid"}, 406
+        leaderboardGroup = "Wordle Leaderboard"
+        leaderboardData = dataclasses.asdict(data)
 
-        if games_val[2] == "In-progress":
-            return {
-                "Game Still in Progress": "true",
-                "Guesses Made": games_val[1]
-            }, 202
-        else:
-            if games_val[1] > 6:
-                return {
-                    "Game Status": "Lost",
-                    "Guesses Made": games_val[1]
-                }, 202
-            else:
-                return {
-                    "Game Status": "Won",
-                    "Guesses Made": games_val[1]
-                }, 202
+
+        result = redisClient.zadd(leaderboardGroup, {leaderboardData["username"]: leaderboardData["guesses"]})
+        print("Result: ", result)
+        echoResult = redisClient.zrange(leaderboardGroup, 0, -1, desc = True, withscores = True)
+        print("Echoed Result: ", echoResult)
+
+        return {"Uploading Game": str(echoResult)}, 200
+
     else:
         return (
             {"error": "User not verified"},
@@ -70,4 +64,8 @@ async def getGameResult(data):
 
 @app.route("/topten", methods=["GET"])
 async def getTopTen():
-    return
+    return (
+        {"error": "User not verified"},
+        401,
+        {"WWW-Authenticate": 'Basic realm = "Login required"'},
+    )
