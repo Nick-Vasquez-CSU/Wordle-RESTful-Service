@@ -22,7 +22,7 @@ class Guess:
     gameid: str
     word: str
 
-
+"""
 async def _connect_db():
     database = databases.Database(app.config["DATABASES"]["URL"])
     await database.connect()
@@ -33,6 +33,19 @@ def _get_db():
     if not hasattr(g, "sqlite_db"):
         g.sqlite_db = _connect_db()
     return g.sqlite_db
+"""
+
+
+async def _connect_db():
+    database = databases.Database(app.config["DATABASES"]["PRIMARY"])
+    await database.connect()
+    return database
+
+def _get_db():
+    if not hasattr(g, "sqlite_db"):
+        g.sqlite_db = _connect_db()
+    return g.sqlite_db
+
 
 
 @app.teardown_appcontext
@@ -85,7 +98,6 @@ async def create_game():
             401,
             {"WWW-Authenticate": 'Basic realm = "Login required"'},
         )
-
 
 # Should validate to check if guess is in valid_word table
 # if it is then insert into guess table
