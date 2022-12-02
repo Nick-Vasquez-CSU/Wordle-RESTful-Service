@@ -23,7 +23,7 @@ redisClient = redis.Redis(host='localhost', port=6379, db=0, charset='utf-8', de
 
 # delete data from redisclient for testing
 
-#redisClient.flushall()
+redisClient.flushall()
 
 
 @dataclasses.dataclass
@@ -46,8 +46,6 @@ async def Results(data: LeaderInfo):
 
     if auth and auth.username and auth.password:
 
-        leaderboardSet = "Leaderboard"
-
         leaderboardData = dataclasses.asdict(data)
 
         score = 0
@@ -66,43 +64,30 @@ async def Results(data: LeaderInfo):
                 score = 2
             if leaderboardData["guesses"] == 6:
                 score = 1
-        else:
+        elif leaderboardData["result"] == "Loss":
             score = 0
-
-        resultOne = redisClient.zrange(leaderboardSet, 0, -1, desc = True, withscores = True, score_cast_func=int)
-        print("AUTH USERMAME: " + auth.username)
-
-        if False:
-            score = redisClient.hget(auth.username, 'score') + score
-            count = redisClient.hget(auth.username, 'gamecount') + count
+        
+        if redisClient.hget('leaderboard', 'username') == auth.username:
+            score = int(redisClient.hget('leaderboard', 'score')) + score
+            count = int(redisClient.hget('leaderboard', 'gamecount')) + count
             averageScore = score / count
-            result = redisClient.hset(auth.username, 'averageScore', averageScore)
-            result = redisClient.hset(auth.username, 'result',leaderboardData["result"])
-            result = redisClient.hset(auth.username, 'guesses',leaderboardData["guesses"])
-            result = redisClient.hset(auth.username, 'score', score)
-            result = redisClient.hset(auth.username, 'gamecount', count)
+        
+            result = redisClient.hset('leaderboard', 'averageScore', averageScore)
+            result = redisClient.hset('leaderboard', 'result',leaderboardData["result"])
+            result = redisClient.hset('leaderboard', 'guesses',leaderboardData["guesses"])
+            result = redisClient.hset('leaderboard', 'score', score)
+            result = redisClient.hset('leaderboard', 'gamecount', count)
 
-        else:
-            result = redisClient.hset(auth.username, 'averageScore', score)
-            result = redisClient.hset(auth.username, 'result',leaderboardData["result"])
-            result = redisClient.hset(auth.username, 'guesses',leaderboardData["guesses"])
-            result = redisClient.hset(auth.username, 'score', score)
-            result = redisClient.hset(auth.username, 'gamecount', count)
+        else  :
 
-        return redisClient.hgetall(auth.username), 200
-        #result = redisClient.zadd(leaderboardData, {id: [auth.username,leaderboardData["result"],leaderboardData["guesses"], score]})
+            result = redisClient.hset('leaderboard', 'username' , auth.username)
+            result = redisClient.hset('leaderboard', 'averageScore', score)
+            result = redisClient.hset('leaderboard', 'result',leaderboardData["result"])
+            result = redisClient.hset('leaderboard', 'guesses',leaderboardData["guesses"])
+            result = redisClient.hset('leaderboard', 'score', score)
+            result = redisClient.hset('leaderboard', 'gamecount', count)
 
-        if result == 0:
-
-            return "Username exist -- Updating Score.\nGame Status-Score\n" + ('\n'.join(map(str, resultOne))), 200
-
-        elif result != int:
-
-            return {"Error:" "Something went wrong."}, 404
-
-        else:
-
-            return "Adding new username and score.\nGame Status-Score\n" + ('\n'.join(map(str, resultOne))), 200
+        return redisClient.hgetall('leaderboard'), 200
 
     else:
         return (
@@ -111,8 +96,6 @@ async def Results(data: LeaderInfo):
             {"WWW-Authenticate": 'Basic realm = "Login required"'},
         )
 
-
-# top 10 scores endpoint
 
 @app.route("/top-scores/", methods=["GET"])
 
