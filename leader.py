@@ -21,11 +21,6 @@ QuartSchema(app)
 redisClient = redis.Redis(host='localhost', port=6379, db=0, charset='utf-8', decode_responses=True)
 
 
-# delete data from redisclient for testing
-
-redisClient.flushall()
-
-
 @dataclasses.dataclass
 
 class LeaderInfo:
@@ -54,31 +49,37 @@ async def Results(data: LeaderInfo):
 
             if leaderboardData["guesses"] == 1:
                 score = 6
-            if leaderboardData["guesses"] == 2:
+            elif leaderboardData["guesses"] == 2:
                 score = 5
-            if leaderboardData["guesses"] == 3:
+            elif leaderboardData["guesses"] == 3:
                 score = 4
-            if leaderboardData["guesses"] == 4:
+            elif leaderboardData["guesses"] == 4:
                 score = 3
-            if leaderboardData["guesses"] == 5:
+            elif leaderboardData["guesses"] == 5:
                 score = 2
-            if leaderboardData["guesses"] == 6:
+            elif leaderboardData["guesses"] == 6:
                 score = 1
+            else:
+                return {"Error": "Invalid Guesses."}, 404
         elif leaderboardData["result"] == "Loss":
             score = 0
-        
+        else:
+            return {"Error": "Invalid Result."}, 404
+
         if redisClient.hget('leaderboard', 'username') == auth.username:
             score = int(redisClient.hget('leaderboard', 'score')) + score
             count = int(redisClient.hget('leaderboard', 'gamecount')) + count
             averageScore = score / count
-        
+
             result = redisClient.hset('leaderboard', 'averageScore', averageScore)
             result = redisClient.hset('leaderboard', 'result',leaderboardData["result"])
             result = redisClient.hset('leaderboard', 'guesses',leaderboardData["guesses"])
             result = redisClient.hset('leaderboard', 'score', score)
             result = redisClient.hset('leaderboard', 'gamecount', count)
+            result2 = redisClient.zadd("Wordle Leaderboard", {auth.username: averageScore})
 
-        else  :
+
+        else:
 
             result = redisClient.hset('leaderboard', 'username' , auth.username)
             result = redisClient.hset('leaderboard', 'averageScore', score)
@@ -86,6 +87,8 @@ async def Results(data: LeaderInfo):
             result = redisClient.hset('leaderboard', 'guesses',leaderboardData["guesses"])
             result = redisClient.hset('leaderboard', 'score', score)
             result = redisClient.hset('leaderboard', 'gamecount', count)
+            result2 = redisClient.zadd("Wordle Leaderboard", {auth.username: score})
+
 
         return redisClient.hgetall('leaderboard'), 200
 
@@ -105,10 +108,10 @@ async def topScores():
     leaderboardSet = "Leaderboard"
 
 
-    topScores = redisClient.zrange(leaderboardSet, 0, 9, desc = True, withscores = True)
+    topScores = redisClient.zrange("Wordle Leaderboard", 0, 9, desc = True, withscores = True)
 
 
-    if topScores != None:
+    if topScores != []:
 
         return ('\n'.join(map(str, topScores))), 200
 
