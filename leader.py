@@ -100,12 +100,9 @@ async def Results(data: LeaderInfo):
         )
 
 
-@app.route("/top-scores/", methods=["GET"])
+@app.route("/top10scores/", methods=["GET"])
 
-async def topScores():
-
-
-    leaderboardSet = "Leaderboard"
+async def top10Scores():
 
 
     topScores = redisClient.zrange("Wordle Leaderboard", 0, 9, desc = True, withscores = True)
@@ -117,4 +114,4 @@ async def topScores():
 
     else:
 
-        return {"Error": "Database empty."}, 404
+        return {"Error": "No data in Database."}, 404
