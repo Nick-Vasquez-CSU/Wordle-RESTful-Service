@@ -51,7 +51,7 @@ async def Results(data: LeaderInfo):
         leaderboardData = dataclasses.asdict(data)
 
         score = 0
-        
+        count = 1
         if leaderboardData["result"] == "Win":
 
             if leaderboardData["guesses"] == 1:
@@ -70,9 +70,28 @@ async def Results(data: LeaderInfo):
             score = 0
 
         resultOne = redisClient.zrange(leaderboardSet, 0, -1, desc = True, withscores = True, score_cast_func=int)
+        print("AUTH USERMAME: " + auth.username)
 
-        result = redisClient.zadd(leaderboardData, {id: [auth.username,leaderboardData["result"],leaderboardData["guesses"], score]})
-                           
+        if False:
+            score = redisClient.hget(auth.username, 'score') + score
+            count = redisClient.hget(auth.username, 'gamecount') + count
+            averageScore = score / count
+            result = redisClient.hset(auth.username, 'averageScore', averageScore)
+            result = redisClient.hset(auth.username, 'result',leaderboardData["result"])
+            result = redisClient.hset(auth.username, 'guesses',leaderboardData["guesses"])
+            result = redisClient.hset(auth.username, 'score', score)
+            result = redisClient.hset(auth.username, 'gamecount', count)
+
+        else:
+            result = redisClient.hset(auth.username, 'averageScore', score)
+            result = redisClient.hset(auth.username, 'result',leaderboardData["result"])
+            result = redisClient.hset(auth.username, 'guesses',leaderboardData["guesses"])
+            result = redisClient.hset(auth.username, 'score', score)
+            result = redisClient.hset(auth.username, 'gamecount', count)
+
+        return redisClient.hgetall(auth.username), 200
+        #result = redisClient.zadd(leaderboardData, {id: [auth.username,leaderboardData["result"],leaderboardData["guesses"], score]})
+
         if result == 0:
 
             return "Username exist -- Updating Score.\nGame Status-Score\n" + ('\n'.join(map(str, resultOne))), 200
