@@ -1,6 +1,8 @@
-mount-dir: "/home/student/Documents/449-project3/Web-Backend-Project3-satish-lifeFS/var/secondary1/mount"
+mount-dir: "./var/secondary1/mount"
 
-data-dir: "/home/student/Documents/449-project3/Web-Backend-Project3-satish-lifeFS/var/secondary1/data"
+data-dir: "./var/secondary1/data"
+
+exec: "hypercorn game --reload --debug --bind game.local.gd:$PORT --access-logfile - --error-logfile - --log-level DEBUG"
 
 http:
         addr: ":20203"
