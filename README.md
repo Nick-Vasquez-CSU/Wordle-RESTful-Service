@@ -3,9 +3,9 @@
 | Group 5         |
 | --------------- |
 | Himani Tawade   |
-| Kenny Tran      |
-| Nicholas Girmes |
-| Mike Ploythai   |
+| Satish Bisa     |
+| Nick Vasquez    |
+| Akhil  |
 
 ##### HOW TO RUN THE PROJECT
 
@@ -54,13 +54,31 @@ server {
 
 upstream gameservice {
     server 127.0.0.1:5100;
-    server 127.0.0.1:5101;
-    server 127.0.0.1:5102;
-    server 127.0.0.1:5103;
+    server 127.0.0.1:5200;
+    server 127.0.0.1:5300;
 }
 ```
 
-2. Initialize the databases within the project folder
+1. Initialize primary, secondary1, and secondary2 directories properly.
+
+ ```c
+      In the var folder...
+       
+        - add a folder "primary", with folders "data" and "mount" inside of it.
+        - add a folder "mount" inside of secondary1 folder.
+        - add a folder "mount" inside of secondary2 folder.
+   ```
+
+
+
+2. Start the API (from project folder)
+
+   ```c
+      foreman start
+      // NOTE: if there's an error upon running this where it doesn't recognize hypercorn, log out of Ubuntu and log back in. If        there is an error regarding ./bin/litefs specifically run "chmod +x ./bin/litefs" first, then retry "foreman start". 
+   ```
+
+3. Initialize the databases/database replicas within the var folder (from project folder)
 
    ```c
       // step 1. give the script permissions to execute
@@ -70,17 +88,10 @@ upstream gameservice {
       ./bin/init.sh
    ```
 
-3. Populate the word databases
+4. Populate the word databases
 
    ```c
       python3 dbpop.py
-   ```
-
-4. Start the API
-
-   ```c
-      foreman start --formation user=1,game=3
-      // NOTE: if there's an error upon running this where it doesn't recognize hypercorn, log out of Ubuntu and log back in.
    ```
 
 5. Test all the endpoints using httpie
@@ -115,6 +126,14 @@ upstream gameservice {
       </html>
       ```
    - game
+
+      NOTE:
+        - all functions which WRITE to db are written specifically to the PRIMARY database connection.
+        - all functions which READ to db are read specifically from either one of the 3 database connections:
+            - PRIMARY
+            - SECONDARY1
+            - SECONDARY2
+          this is handled by randomly (using random.choice()) selecting a DB connection from a list of them whenever a GET                 method is called. When executing a GET method, you can see in the terminal the addresses of all the DB connections,             and the address of the specific DB that ends up being used for the actual read. This is how we handled the Read                 Distribution Functionality. 
 
       - create a new game: `http --auth yourusername:yourpassword POST http://tuffix-vm/newgame`
       
