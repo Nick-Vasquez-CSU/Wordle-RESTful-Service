@@ -3,6 +3,9 @@ import sqlite3
 import uuid
 import databases
 import toml
+import itertools
+import random
+from itertools import cycle
 from quart import Quart, abort, g, request
 from quart_schema import QuartSchema, validate_request
 
@@ -10,7 +13,6 @@ app = Quart(__name__)
 QuartSchema(app)
 
 app.config.from_file(f"./etc/{__name__}.toml", toml.load)
-
 
 @dataclasses.dataclass
 class Game:
@@ -22,29 +24,26 @@ class Guess:
     gameid: str
     word: str
 
-"""
-async def _connect_db():
-    database = databases.Database(app.config["DATABASES"]["URL"])
-    await database.connect()
-    return database
-
-
-def _get_db():
-    if not hasattr(g, "sqlite_db"):
-        g.sqlite_db = _connect_db()
-    return g.sqlite_db
-"""
-
-
-async def _connect_db():
-    database = databases.Database(app.config["DATABASES"]["PRIMARY"])
-    await database.connect()
-    return database
-
-def _get_db():
-    if not hasattr(g, "sqlite_db"):
-        g.sqlite_db = _connect_db()
-    return g.sqlite_db
+dbList = []    
+    
+async def _get_write_db():
+    db = getattr(g, "_sqlite_db", None)
+    if db is None:
+        db = g._sqlite_db = databases.Database(app.config["DATABASES"]["PRIMARY"])
+        await db.connect()
+    return db
+    
+    
+async def _get_read_dbs():
+    db = getattr(g, "_sqlite_db", None)
+    if db is None:
+        db1 = g._sqlite_db = databases.Database(app.config["DATABASES"]["PRIMARY"])
+        await db1.connect()
+        db2 = g._sqlite_db = databases.Database(app.config["DATABASES"]["SECONDARY1"])
+        await db2.connect()
+        db3 = g._sqlite_db = databases.Database(app.config["DATABASES"]["SECONDARY2"])
+        await db3.connect()
+    return db1, db2, db3
 
 
 
@@ -60,7 +59,7 @@ async def create_game():
     # auth method referenced from https://www.youtube.com/watch?v=VW8qJxy4XcQ
     auth = request.authorization
     if auth and auth.username and auth.password:
-        db = await _get_db()
+        db = await _get_write_db()
 
         # Retrive random ID from the answers table
         word = await db.fetch_one(
@@ -109,7 +108,7 @@ async def add_guess(data):
     # auth method referenced from https://www.youtube.com/watch?v=VW8qJxy4XcQ
     auth = request.authorization
     if auth and auth.username and auth.password:
-        db = await _get_db()
+        db = await _get_write_db()
         currGame = dataclasses.asdict(data)
 
         # checks whether guessed word is the answer for that game
@@ -227,7 +226,10 @@ async def all_games():
     # auth method referenced from https://www.youtube.com/watch?v=VW8qJxy4XcQ
     auth = request.authorization
     if auth and auth.username and auth.password:
-        db = await _get_db()
+        dbList = await _get_read_dbs()
+        print("dbList: " + str(dbList))
+        db = random.choice(dbList)
+        print("db: " + str(db))
 
         games_val = await db.fetch_all(
             "SELECT * FROM game as a where gameid IN (select gameid from games where username = :username) and a.gstate = :gstate;",
@@ -251,7 +253,12 @@ async def my_game():
     # auth method referenced from https://www.youtube.com/watch?v=VW8qJxy4XcQ
     auth = request.authorization
     if auth and auth.username and auth.password:
-        db = await _get_db()
+        dbList = await _get_read_dbs()
+        print("dbList: " + str(dbList))
+        db = random.choice(dbList)
+        print("db: " + str(db))
+
+        
         gameid = request.args.get("id")
 
         results = await db.fetch_all(
