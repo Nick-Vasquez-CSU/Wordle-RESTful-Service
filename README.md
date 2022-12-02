@@ -133,7 +133,8 @@ upstream gameservice {
             - PRIMARY
             - SECONDARY1
             - SECONDARY2
-          this is handled by randomly (using random.choice()) selecting a DB connection from a list of them whenever a GET                 method is called. When executing a GET method, you can see in the terminal the addresses of all the DB connections,             and the address of the specific DB that ends up being used for the actual read. This is how we handled the Read                 Distribution Functionality. 
+          
+          *** this is handled by randomly (using random.choice()) selecting a DB connection from a list of them whenever a GET method is called. When executing a GET method, you can see in the terminal the addresses of all the DB connections, and the address of the specific DB that ends up being used for the actual read. This is how we handled the Read Distribution Functionality. 
 
       - create a new game: `http --auth yourusername:yourpassword POST http://tuffix-vm/newgame`
       
