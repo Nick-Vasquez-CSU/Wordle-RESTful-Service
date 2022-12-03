@@ -8,7 +8,7 @@
 
 ##### HOW TO RUN THE PROJECT
 
-1. Copy the contents of our [nginx config file](https://github.com/himanitawade/Web-Back-End-Project2/blob/master/nginxconfig.txt) into a new file within `/etc/nginx/sites-enabled` called `nginxconfig`. Assuming the nginx service is already running, restart the service using `sudo service nginx restart`.
+1. Copy the contents of our [nginx config file](https://github.com/himanitawade/Web-Backend-Project3/blob/master/nginxconfig.txt) into a new file within `/etc/nginx/sites-enabled` called `nginxconfig`. Assuming the nginx service is already running, restart the service using `sudo service nginx restart`.
 
 Nginx Config:
 
@@ -58,7 +58,7 @@ upstream gameservice {
 }
 ```
 
-1. Initialize primary, secondary1, and secondary2 directories properly.
+1. Initialize primary, secondary1, and secondary2 directories properly incase the folders are not present
 
  ```c
       In the var folder...
