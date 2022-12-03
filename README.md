@@ -208,15 +208,18 @@ upstream gameservice {
          This endpoint is accesible to the people who are registered and will be authenticated with their registeration details
          They can post the result of a game and the number of guesses they made to acheive that finished game result.
          The results end point have two values which will be accepted when you login with a registered user.
-      ```
+     
+     ```c
          guesses: accepted value [1 - 6] else an error will be given
          result: ["Win" or "Loss"]
       ```
+      
       
          This will generate an output with an average score if you have played multiple games else a new user will be given
          a score according to the number of guesses used to win or 0 if a loss with 6 guesses is given.
          
           Sample Output:
+          
     ```
           {
           "username": "mac",
