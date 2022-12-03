@@ -232,7 +232,7 @@ upstream gameservice {
     
     - top10scores
     
-    This endpoint will list the top 10 players and will give a leader board
+      This endpoint will list the top 10 players and will give a leader board. This endpoint requires no authentication and will be accesible to everyone
     
        Sample Output:
     ```
