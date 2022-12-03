@@ -5,7 +5,6 @@
 | Himani Tawade   |
 | Satish Bisa     |
 | Nick Vasquez    |
-| Akhil  |
 
 ##### HOW TO RUN THE PROJECT
 
@@ -53,9 +52,9 @@ server {
 }
 
 upstream gameservice {
-    server 127.0.0.1:5100;
     server 127.0.0.1:5200;
     server 127.0.0.1:5300;
+    server 127.0.0.1:5400;
 }
 ```
 
@@ -65,8 +64,8 @@ upstream gameservice {
       In the var folder...
        
         - add a folder "primary", with folders "data" and "mount" inside of it.
-        - add a folder "mount" inside of secondary1 folder.
-        - add a folder "mount" inside of secondary2 folder.
+        - add a folder "secondary1" folder with "data" and "mount" inside of it.
+        - add a folder "secondary2" folder with "data" and "mount" inside of it.
    ```
 
 
@@ -75,7 +74,21 @@ upstream gameservice {
 
    ```c
       foreman start
-      // NOTE: if there's an error upon running this where it doesn't recognize hypercorn, log out of Ubuntu and log back in. If        there is an error regarding ./bin/litefs specifically run "chmod +x ./bin/litefs" first, then retry "foreman start". 
+      // NOTE: if there's an error upon running this where it doesn't recognize hypercorn, log out of Ubuntu and log back in.                  If there is an error regarding ./bin/litefs specifically run "chmod +x ./bin/litefs" first, then retry "foreman start".
+      
+      After the foreman start is done you will see five instances running user, leader, 3 games names as(primary,secondary1,secondary2)
+       
+      16:53:01 leader.1     | [2022-12-02 16:53:01 -0800] [3425] [INFO] Running on http://127.0.0.1:5100 (CTRL + C to quit)
+      16:53:01 user.1       | [2022-12-02 16:53:01 -0800] [3427] [INFO] Running on http://127.0.0.1:5000 (CTRL + C to quit)
+      16:53:05 primary.1    | starting subprocess: hypercorn [game --reload --debug --bind game.local.gd:5200 --access-logfile - --error-logfile - --log-level DEBUG]
+      16:53:05 secondary2.1 | starting subprocess: hypercorn [game --reload --debug --bind game.local.gd:5400 --access-logfile - --error-logfile - --log-level DEBUG]
+      16:53:05 secondary1.1 | starting subprocess: hypercorn [game --reload --debug --bind game.local.gd:5300 --access-logfile - --error-logfile - --log-level DEBUG]
+      16:53:06 primary.1    | [2022-12-02 16:53:06 -0800] [3437] [INFO] Running on http://127.0.0.1:5200 (CTRL + C to quit)
+      16:53:06 secondary1.1 | [2022-12-02 16:53:06 -0800] [3441] [INFO] Running on http://127.0.0.1:5300 (CTRL + C to quit)
+      16:53:06 secondary2.1 | [2022-12-02 16:53:06 -0800] [3439] [INFO] Running on http://127.0.0.1:5400 (CTRL + C to quit)
+
+
+      
    ```
 
 3. Initialize the databases/database replicas within the var folder (from project folder)
@@ -188,3 +201,51 @@ upstream gameservice {
           }
       ]
       ```
+     - leader:  Use http://leader.local.gd:5100/docs to access the end points
+     -results
+         This endpoint is accesible to the people who are registered and will be authenticated with their registeration details
+         They can post the result of a game and the number of guesses they made to acheive that finished game result.
+         The results end point have two values which will be accepted when you login with a registered user.
+         guesses: accepted value [1 - 6] else an error will be given
+         result: ["Win" or "Loss"]
+         
+         This will generate an output with an average score if you have played multiple games else a new user will be given
+         a score according to the number of guesses used to win or 0 if a loss with 6 guesses is given.
+         
+          Sample Output:
+    ```
+          {
+          "username": "mac",
+          "averageScore": "6.0",
+          "result": "Win",
+          "guesses": "1",
+          "score": "12",
+          "gamecount": "2"
+          }
+         
+    ```
+    -Note: averageScore will be used to calculate the top 10 players
+    
+    - top10scores
+    
+    This endpoint will list the top 10 players and will give a leader board
+    
+       Sample Output:
+    ```
+          {
+          ('len', 6.0)
+          ('gen', 6.0)
+          ('mac', 5.666666666666667)
+          ('jim', 5.0)
+          ('himani', 5.0)
+          ('ten', 4.0)
+          ('ken', 3.0)
+          ('fen', 3.0)
+          ('den', 1.0)
+          ('men', 0.0)
+          }
+         
+    ```
+    
+         
+         
