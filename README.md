@@ -72,12 +72,12 @@ upstream gameservice {
 
 2. Start the API (from project folder)
 
-   ```c
-      foreman start
+   - foreman start
       // NOTE: if there's an error upon running this where it doesn't recognize hypercorn, log out of Ubuntu and log back in.                  If there is an error regarding ./bin/litefs specifically run "chmod +x ./bin/litefs" first, then retry "foreman start".
       
       After the foreman start is done you will see five instances running user, leader, 3 games names as(primary,secondary1,secondary2)
-       
+   
+  ```c
       16:53:01 leader.1     | [2022-12-02 16:53:01 -0800] [3425] [INFO] Running on http://127.0.0.1:5100 (CTRL + C to quit)
       16:53:01 user.1       | [2022-12-02 16:53:01 -0800] [3427] [INFO] Running on http://127.0.0.1:5000 (CTRL + C to quit)
       16:53:05 primary.1    | starting subprocess: hypercorn [game --reload --debug --bind game.local.gd:5200 --access-logfile - --error-logfile - --log-level DEBUG]
@@ -202,13 +202,17 @@ upstream gameservice {
       ]
       ```
      - leader:  Use http://leader.local.gd:5100/docs to access the end points
-     -results
+     
+     - results
+     - 
          This endpoint is accesible to the people who are registered and will be authenticated with their registeration details
          They can post the result of a game and the number of guesses they made to acheive that finished game result.
          The results end point have two values which will be accepted when you login with a registered user.
+      ```
          guesses: accepted value [1 - 6] else an error will be given
          result: ["Win" or "Loss"]
-         
+      ```
+      
          This will generate an output with an average score if you have played multiple games else a new user will be given
          a score according to the number of guesses used to win or 0 if a loss with 6 guesses is given.
          
@@ -224,7 +228,7 @@ upstream gameservice {
           }
          
     ```
-    -Note: averageScore will be used to calculate the top 10 players
+    - Note: averageScore will be used to calculate the top 10 players
     
     - top10scores
     
