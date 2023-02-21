@@ -6,7 +6,7 @@
 | Satish Bisa     |
 | Nick Vasquez    |
 
-### WHAT WE LEARNED
+##### WHAT WE LEARNED
 * How to implement back-end APIs in Python with the Quart web framework
 * How to design and implement relational database schemas for back-end APIs
 * How to extract, transform, and load database tables from data sources in other formats
