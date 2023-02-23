@@ -1,4 +1,4 @@
-### Backend Project 3
+### Wordle-RESTful-Service
 
 | Group 6         |
 | --------------- |
