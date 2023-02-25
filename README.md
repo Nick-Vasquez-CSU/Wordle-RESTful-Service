@@ -6,6 +6,8 @@
 | Satish Bisa     |
 | Nick Vasquez    |
 
+![Screenshot](md.png)
+
 ##### WHAT WE LEARNED
 * How to implement back-end APIs in Python with the Quart web framework
 * How to design and implement relational database schemas for back-end APIs
